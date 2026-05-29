@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A01 – Broken Access Control | OWASP Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --bg2: #13161e;
+    --bg3: #1a1e2a;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e8eaf0;
+    --muted: #8a8fa8;
+    --accent: #4f8ef7;
+    --accent2: #7c3aed;
+    --green: #22c55e;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --teal: #14b8a6;
+    --pink: #ec4899;
+    --font: 'Sora', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── Layout ── */
+  .shell { display: flex; min-height: 100vh; }
+
+  /* sidebar */
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 28px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .sidebar-logo {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .sidebar-logo span { color: var(--accent); }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(79,142,247,0.08); }
+  .nav-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+  .nav-section {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 18px 20px 6px;
+    opacity: 0.6;
+  }
+
+  /* main */
+  .main {
+    flex: 1;
+    max-width: 840px;
+    padding: 48px 48px 80px;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    background: var(--bg2);
+    margin-bottom: 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(79,142,247,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(79,142,247,0.1);
+    border: 1px solid rgba(79,142,247,0.25);
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.25;
+    margin-bottom: 10px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub {
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 520px;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 24px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .stat { flex: 1; }
+  .stat-num {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--accent);
+    font-family: var(--mono);
+  }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Section ── */
+  .section {
+    margin-bottom: 40px;
+    scroll-margin-top: 24px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .section-tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+  .tag-concept { color: var(--teal); border-color: rgba(20,184,166,0.35); background: rgba(20,184,166,0.08); }
+  .tag-attack  { color: var(--red);  border-color: rgba(239,68,68,0.35);   background: rgba(239,68,68,0.08); }
+  .tag-detect  { color: var(--amber); border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.08); }
+  .tag-fix     { color: var(--green); border-color: rgba(34,197,94,0.35);  background: rgba(34,197,94,0.08); }
+  .tag-lab     { color: var(--pink);  border-color: rgba(236,72,153,0.35); background: rgba(236,72,153,0.08); }
+  .tag-tool    { color: var(--accent2); border-color: rgba(124,58,237,0.35); background: rgba(124,58,237,0.08); }
+
+  .section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card p, .card li {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+  .card ul { padding-left: 18px; }
+  .card li { margin-bottom: 4px; }
+
+  /* ── Type grid ── */
+  .type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .type-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    position: relative;
+  }
+  .type-card:hover { border-color: var(--border2); background: var(--bg2); }
+  .type-card.open { border-color: rgba(79,142,247,0.4); }
+  .type-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .type-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .type-badge {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .badge-h { background: rgba(239,68,68,0.15); color: var(--red); }
+  .badge-m { background: rgba(245,158,11,0.15); color: var(--amber); }
+  .type-desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.55;
+  }
+  .type-detail {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .type-card.open .type-detail { display: block; }
+  .chevron {
+    font-size: 13px;
+    color: var(--muted);
+    transition: transform 0.2s;
+  }
+  .type-card.open .chevron { transform: rotate(90deg); }
+
+  /* ── Code blocks ── */
+  pre {
+    background: #090b10;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin-bottom: 10px;
+    color: #c9d1e0;
+  }
+  .kw { color: #7dd3fc; }
+  .str { color: #86efac; }
+  .cmt { color: #4b5563; font-style: italic; }
+  .url { color: var(--accent); }
+  .bad { color: var(--red); }
+  .good { color: var(--green); }
+  .hl { background: rgba(79,142,247,0.12); border-left: 3px solid var(--accent); padding-left: 12px; display: block; margin: -1px -18px; padding-right: 18px; }
+
+  /* ── Flow steps ── */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 4px 0 12px;
+  }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    position: relative;
+  }
+  .flow-step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 32px;
+    bottom: -8px;
+    width: 1px;
+    background: var(--border2);
+  }
+  .step-num {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--mono);
+    color: var(--accent);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 16px;
+  }
+  .step-content { padding-top: 5px; }
+  .step-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .step-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Indicators ── */
+  .indicator-list { list-style: none; }
+  .indicator-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .indicator-list li:last-child { border-bottom: none; }
+  .ind-icon {
+    width: 22px; height: 22px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .ind-red    { background: rgba(239,68,68,0.15);   color: var(--red); }
+  .ind-amber  { background: rgba(245,158,11,0.15);  color: var(--amber); }
+  .ind-blue   { background: rgba(79,142,247,0.15);  color: var(--accent); }
+
+  /* ── Prevention ── */
+  .prevent-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .prevent-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    border-left: 3px solid var(--green);
+  }
+  .prevent-card .title { font-size: 13px; font-weight: 600; color: var(--green); margin-bottom: 4px; }
+  .prevent-card .desc  { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  /* ── VS comparison ── */
+  .vs-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .vs-bad, .vs-good {
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-size: 13px;
+    font-family: var(--mono);
+    line-height: 1.55;
+  }
+  .vs-bad  { background: rgba(239,68,68,0.08);  border: 1px solid rgba(239,68,68,0.25);  color: #fca5a5; }
+  .vs-good { background: rgba(34,197,94,0.08);  border: 1px solid rgba(34,197,94,0.25);  color: #86efac; }
+  .vs-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; opacity: 0.7; font-family: var(--font); }
+
+  /* ── Lab cards ── */
+  .lab-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s;
+  }
+  .lab-card:hover { border-color: var(--border2); }
+  .lab-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: rgba(236,72,153,0.1);
+    border: 1px solid rgba(236,72,153,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .lab-info { flex: 1; }
+  .lab-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .lab-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .lab-diff {
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  .diff-app  { background: rgba(239,68,68,0.12);   color: var(--red); }
+  .diff-prac { background: rgba(245,158,11,0.12);  color: var(--amber); }
+
+  /* ── Tools ── */
+  .tool-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .tool-row:last-child { border-bottom: none; }
+  .tool-icon {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    background: rgba(124,58,237,0.12);
+    border: 1px solid rgba(124,58,237,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    color: var(--accent2);
+    flex-shrink: 0;
+    font-family: var(--mono);
+    font-weight: 600;
+  }
+  .tool-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .tool-use  { font-size: 13px; color: var(--muted); }
+
+  /* ── Mindset box ── */
+  .mindset {
+    background: linear-gradient(135deg, rgba(79,142,247,0.06), rgba(124,58,237,0.06));
+    border: 1px solid rgba(79,142,247,0.2);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 12px;
+  }
+  .mindset-q {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .mindset-a {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+  .mindset-a strong { color: var(--accent); font-weight: 500; }
+
+  /* ── Payload tabs ── */
+  .payload-tabs { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
+  .ptab {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .ptab.active { background: rgba(79,142,247,0.12); border-color: rgba(79,142,247,0.4); color: var(--accent); }
+  .payload-block { display: none; }
+  .payload-block.active { display: block; }
+
+  /* ── Divider ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  /* ── Real-world ── */
+  .real-case {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 12px;
+    border-left: 3px solid var(--accent2);
+  }
+  .case-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .case-body  { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .case-body code {
+    font-family: var(--mono);
+    background: var(--bg3);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+    font-size: 12px;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 999px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Sidebar navigation -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">OWASP Notes / <span>A01</span></div>
+
+    <div class="nav-section">Overview</div>
+    <a href="#concept"    class="nav-item active"><span class="nav-dot"></span> Concept</a>
+    <a href="#types"      class="nav-item"><span class="nav-dot"></span> Attack types</a>
+
+    <div class="nav-section">Testing</div>
+    <a href="#indicators" class="nav-item"><span class="nav-dot"></span> Indicators</a>
+    <a href="#flow"       class="nav-item"><span class="nav-dot"></span> Attack flow</a>
+    <a href="#payloads"   class="nav-item"><span class="nav-dot"></span> Payloads</a>
+
+    <div class="nav-section">Fix & Labs</div>
+    <a href="#prevention" class="nav-item"><span class="nav-dot"></span> Prevention</a>
+    <a href="#labs"       class="nav-item"><span class="nav-dot"></span> Labs</a>
+    <a href="#tools"      class="nav-item"><span class="nav-dot"></span> Tools</a>
+
+    <div class="nav-section">Context</div>
+    <a href="#realworld"  class="nav-item"><span class="nav-dot"></span> Real-world cases</a>
+    <a href="#mindset"    class="nav-item"><span class="nav-dot"></span> Attacker mindset</a>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-badge">🏆 OWASP Top 10:2025 · #1</div>
+      <h1><span>A01</span> – Broken Access Control</h1>
+      <p class="hero-sub">Lỗ hổng phổ biến nhất trên web: user truy cập được resource hoặc chức năng mà họ <em>không được phép</em>. Số 1 liên tiếp vì cực khó detect tự động và dễ bị bỏ sót khi review code.</p>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-num">100%</div>
+          <div class="stat-label">app có ít nhất 1 BAC issue (theo OWASP 2025)</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">40</div>
+          <div class="stat-label">CWE được map vào category này</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">32,654</div>
+          <div class="stat-label">CVEs liên quan</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONCEPT -->
+    <section class="section" id="concept">
+      <div class="section-header">
+        <span class="section-tag tag-concept">Concept</span>
+        <h2>Broken Access Control là gì?</h2>
+      </div>
+
+      <div class="mindset">
+        <div class="mindset-q">🔑 Một câu để nhớ</div>
+        <div class="mindset-a">
+          Access control gồm 3 lớp cần phân biệt rõ: <strong>Authentication</strong> (bạn là ai?), <strong>Session management</strong> (request này có phải của bạn không?), và <strong>Access control</strong> (bạn có quyền làm điều này không?). BAC xảy ra khi lớp thứ 3 bị bypass — <strong>app biết bạn là ai nhưng không kiểm tra bạn được làm gì</strong>.
+        </div>
+      </div>
+
+      <div class="card">
+        <p>Access control enforcement cần xảy ra ở <strong style="color:var(--accent)">server-side</strong>. Nếu chỉ kiểm tra ở client (JavaScript, hidden field, URL param), attacker bypass dễ dàng bằng Burp Suite hoặc <code style="font-family:var(--mono);font-size:12px;color:var(--teal)">curl</code>.</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ATTACK TYPES -->
+    <section class="section" id="types">
+      <div class="section-header">
+        <span class="section-tag tag-attack">Attack types</span>
+        <h2>Các dạng tấn công chính</h2>
+      </div>
+
+      <div class="type-grid">
+
+        <div class="type-card" onclick="toggleType(this)">
+          <div class="type-card-header">
+            <div>
+              <div class="type-name">IDOR</div>
+              <div class="type-badge badge-h">Critical</div>
+            </div>
+            <span class="chevron">›</span>
+          </div>
+          <div class="type-desc">Insecure Direct Object Reference – đổi ID để xem data của người khác.</div>
+          <div class="type-detail">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">App dùng user-controlled input để truy xuất object trực tiếp mà không verify ownership.</p>
+            <pre><span class="cmt"># Thử đổi id từ 123 → 124</span>
+GET /api/orders/<span class="bad">123</span>    → 200 OK (đơn của bạn)
+GET /api/orders/<span class="good">124</span>    → 200 OK (đơn của người khác!)</pre>
+            <p style="font-size:13px;color:var(--muted);">GUID không bảo vệ được nếu GUID bị leak trong response API khác (e.g. user reviews, messages).</p>
+          </div>
+        </div>
+
+        <div class="type-card" onclick="toggleType(this)">
+          <div class="type-card-header">
+            <div>
+              <div class="type-name">Vertical Privilege Escalation</div>
+              <div class="type-badge badge-h">Critical</div>
+            </div>
+            <span class="chevron">›</span>
+          </div>
+          <div class="type-desc">User thường truy cập được chức năng chỉ dành cho admin.</div>
+          <div class="type-detail">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">App không bảo vệ admin endpoint, hoặc kiểm tra role ở client-side.</p>
+            <pre><span class="cmt"># Force browse đến admin page</span>
+GET /admin/deleteUser  → 200 OK (không check role!)
+
+<span class="cmt"># Parameter tampering</span>
+?role=<span class="bad">admin</span>  hoặc  Cookie: role=<span class="bad">admin</span></pre>
+          </div>
+        </div>
+
+        <div class="type-card" onclick="toggleType(this)">
+          <div class="type-card-header">
+            <div>
+              <div class="type-name">Horizontal Privilege Escalation</div>
+              <div class="type-badge badge-h">High</div>
+            </div>
+            <span class="chevron">›</span>
+          </div>
+          <div class="type-desc">Truy cập resource của user cùng cấp quyền nhưng khác account.</div>
+          <div class="type-detail">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">Dạng IDOR nhưng target là user cùng role. Đặc biệt nguy hiểm: nếu target là admin thì leo thang thành vertical escalation.</p>
+            <pre>GET /myaccount?id=<span class="bad">456</span>
+<span class="cmt"># Nếu id=456 là admin → lấy được admin creds</span></pre>
+          </div>
+        </div>
+
+        <div class="type-card" onclick="toggleType(this)">
+          <div class="type-card-header">
+            <div>
+              <div class="type-name">Force Browsing</div>
+              <div class="type-badge badge-m">Medium</div>
+            </div>
+            <span class="chevron">›</span>
+          </div>
+          <div class="type-desc">Đoán/bruteforce URL để truy cập page không có link trên UI.</div>
+          <div class="type-detail">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">App ẩn URL thay vì enforce authorization — "security by obscurity" không phải access control thật.</p>
+            <pre><span class="cmt"># Trong robots.txt hoặc JS source code</span>
+/admin
+/dashboard/internal
+/api/v1/admin/users
+/administrator-panel-yb556
+
+<span class="cmt"># Script leak trong HTML</span>
+<span class="kw">if</span> (isAdmin) { href = <span class="str">'/admin-panel'</span> }</pre>
+          </div>
+        </div>
+
+        <div class="type-card" onclick="toggleType(this)">
+          <div class="type-card-header">
+            <div>
+              <div class="type-name">JWT / Metadata Tampering</div>
+              <div class="type-badge badge-h">High</div>
+            </div>
+            <span class="chevron">›</span>
+          </div>
+          <div class="type-desc">Sửa token, cookie, hidden field để nâng quyền.</div>
+          <div class="type-detail">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">App lưu role trong JWT/cookie mà user có thể sửa.</p>
+            <pre><span class="cmt"># JWT payload decode</span>
+{ "user": "alice", "role": "<span class="bad">user</span>" }
+<span class="cmt"># Sửa thành</span>
+{ "user": "alice", "role": "<span class="good">admin</span>" }</pre>
+          </div>
+        </div>
+
+        <div class="type-card" onclick="toggleType(this)">
+          <div class="type-card-header">
+            <div>
+              <div class="type-name">Platform Misconfiguration</div>
+              <div class="type-badge badge-m">Medium</div>
+            </div>
+            <span class="chevron">›</span>
+          </div>
+          <div class="type-desc">Bypass rule bằng non-standard header hoặc HTTP method.</div>
+          <div class="type-detail">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">Rule block POST nhưng không block GET. Hoặc dùng header để override URL.</p>
+            <pre><span class="cmt"># Header bypass</span>
+POST / HTTP/1.1
+<span class="kw">X-Original-URL:</span> /admin/deleteUser
+
+<span class="cmt"># Method bypass (thay POST → GET)</span>
+GET /admin/deleteUser?userId=5
+
+<span class="cmt"># Trailing slash bypass</span>
+GET /admin/deleteUser<span class="good">/</span></pre>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CORS + Multi-step -->
+      <div class="card" style="border-left:3px solid var(--amber)">
+        <div class="card-title">⚠️ Hai dạng hay bị bỏ sót</div>
+        <ul>
+          <li><strong style="color:var(--text)">CORS misconfiguration</strong> — cho phép origin không tin cậy gọi API authenticated. Nguy hiểm khi kết hợp với XSS.</li>
+          <li style="margin-top:6px"><strong style="color:var(--text)">Multi-step process bypass</strong> — step 1 và 2 check quyền, nhưng step 3 (confirmation) không check. Attacker skip thẳng đến step 3.</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- INDICATORS -->
+    <section class="section" id="indicators">
+      <div class="section-header">
+        <span class="section-tag tag-detect">Detection</span>
+        <h2>Dấu hiệu nhận biết</h2>
+      </div>
+
+      <ul class="indicator-list card" style="padding: 8px 20px;">
+        <li>
+          <span class="ind-icon ind-red">!</span>
+          <div>
+            <strong style="color:var(--text);font-size:14px">URL chứa numeric ID</strong><br>
+            <span><code style="font-family:var(--mono);font-size:12px;color:var(--accent)">/users/123</code>, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">/orders/456</code>, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">/api/files/789</code> — luôn thử đổi sang ID khác</span>
+          </div>
+        </li>
+        <li>
+          <span class="ind-icon ind-red">!</span>
+          <div>
+            <strong style="color:var(--text);font-size:14px">Parameter chứa role/admin/privilege</strong><br>
+            <span><code style="font-family:var(--mono);font-size:12px;color:var(--accent)">?admin=false</code>, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">?role=user</code> trong URL hoặc body — test thay đổi giá trị</span>
+          </div>
+        </li>
+        <li>
+          <span class="ind-icon ind-amber">~</span>
+          <div>
+            <strong style="color:var(--text);font-size:14px">JWT/Cookie chứa role claim</strong><br>
+            <span>Decode JWT payload → tìm <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">"role"</code>, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">"isAdmin"</code>, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">"permissions"</code></span>
+          </div>
+        </li>
+        <li>
+          <span class="ind-icon ind-amber">~</span>
+          <div>
+            <strong style="color:var(--text);font-size:14px">Admin URL lộ trong source code hoặc JS</strong><br>
+            <span>Inspect HTML/JS tìm link ẩn, check <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">/robots.txt</code>, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">sitemap.xml</code></span>
+          </div>
+        </li>
+        <li>
+          <span class="ind-icon ind-blue">i</span>
+          <div>
+            <strong style="color:var(--text);font-size:14px">Response trả về HTTP redirect nhưng vẫn có data</strong><br>
+            <span>App trả <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">302 Found</code> nhưng body response vẫn chứa sensitive data — Burp bắt được response đầy đủ trước khi browser redirect</span>
+          </div>
+        </li>
+        <li>
+          <span class="ind-icon ind-blue">i</span>
+          <div>
+            <strong style="color:var(--text);font-size:14px">API endpoint POST/PUT/DELETE không có auth check</strong><br>
+            <span>Frontend có kiểm tra nhưng API raw không — test trực tiếp bằng Burp hoặc curl</span>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ATTACK FLOW -->
+    <section class="section" id="flow">
+      <div class="section-header">
+        <span class="section-tag tag-attack">Attack flow</span>
+        <h2>Methodology – Tư duy attacker</h2>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">🎯 IDOR Testing</div>
+        <div class="flow" style="margin-top:12px">
+          <div class="flow-step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-title">Identify endpoints có ID/parameter</div>
+              <div class="step-sub">Scan toàn bộ request trong Burp, tìm numeric/predictable ID trong URL, body, header</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <div class="step-title">Tạo 2 account (A và B)</div>
+              <div class="step-sub">Dùng account A để tạo resource, ghi lại ID. Dùng account B để request ID đó.</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-title">Thay đổi ID trong Burp Repeater</div>
+              <div class="step-sub">Test thủ công, dùng Intruder để enumerate, dùng Autorize để automate cross-account</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <div class="step-title">Observe response</div>
+              <div class="step-sub">200 + data = IDOR confirmed. 403 = có check. 200 nhưng empty có thể vẫn là bug (enumeration).</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">5</div>
+            <div class="step-content">
+              <div class="step-title">Escalate: test write operations</div>
+              <div class="step-sub">PUT/DELETE/POST với ID của người khác — impact cao hơn nhiều so với chỉ read</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">🎯 Privilege Escalation Testing</div>
+        <div class="flow" style="margin-top:12px">
+          <div class="flow-step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-title">Map chức năng admin (với account admin nếu có)</div>
+              <div class="step-sub">Dùng Burp để capture tất cả request khi dùng admin account, ghi lại endpoint</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <div class="step-title">Force browse các admin URL bằng user session</div>
+              <div class="step-sub">Dùng Autorize: load admin sitemap, replay tất cả request với user token</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-title">Test parameter/cookie manipulation</div>
+              <div class="step-sub">Tìm và sửa role-related value, test cả unauthenticated (bỏ cookie hoàn toàn)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- PAYLOADS -->
+    <section class="section" id="payloads">
+      <div class="section-header">
+        <span class="section-tag tag-attack">Payloads</span>
+        <h2>Payload &amp; Request mẫu</h2>
+      </div>
+
+      <div class="payload-tabs">
+        <button class="ptab active" onclick="showTab('idor')">IDOR</button>
+        <button class="ptab" onclick="showTab('privesc')">Privilege escalation</button>
+        <button class="ptab" onclick="showTab('bypass')">Bypass tricks</button>
+        <button class="ptab" onclick="showTab('jwt')">JWT</button>
+      </div>
+
+      <div id="tab-idor" class="payload-block active">
+        <pre><span class="cmt"># Horizontal IDOR – đổi ID</span>
+GET /api/users/<span class="bad">1337</span>/profile HTTP/1.1
+Authorization: Bearer &lt;your_token&gt;
+
+<span class="cmt"># IDOR qua body parameter</span>
+POST /api/transfer HTTP/1.1
+{
+  "from_account": <span class="bad">99999</span>,
+  "to_account": "attacker",
+  "amount": 1000
+}
+
+<span class="cmt"># IDOR với static file</span>
+GET /files/<span class="bad">../user_456/contract.pdf</span></pre>
+      </div>
+
+      <div id="tab-privesc" class="payload-block">
+        <pre><span class="cmt"># Force browse admin page</span>
+GET /admin HTTP/1.1
+GET /admin/users HTTP/1.1
+GET /management/console HTTP/1.1
+
+<span class="cmt"># Parameter tampering trong URL</span>
+GET /home?<span class="bad">admin=true</span> HTTP/1.1
+GET /login?<span class="bad">role=administrator</span> HTTP/1.1
+
+<span class="cmt"># Cookie manipulation</span>
+Cookie: session=abc123; <span class="bad">role=admin</span>
+
+<span class="cmt"># Hidden field (capture từ form → sửa)</span>
+&lt;input type="hidden" name="role" value="<span class="bad">admin</span>"&gt;</pre>
+      </div>
+
+      <div id="tab-bypass" class="payload-block">
+        <pre><span class="cmt"># Header override bypass</span>
+POST / HTTP/1.1
+<span class="kw">X-Original-URL:</span> /admin/deleteUser
+<span class="kw">X-Rewrite-URL:</span> /admin/deleteUser
+
+<span class="cmt"># HTTP method change (POST → GET)</span>
+GET /admin/deleteUser?userId=5 HTTP/1.1
+
+<span class="cmt"># URL case variation</span>
+GET /ADMIN/deleteUser HTTP/1.1
+GET /Admin/DeleteUser HTTP/1.1
+
+<span class="cmt"># Trailing slash bypass (Spring useSuffixPatternMatch)</span>
+GET /admin/deleteUser<span class="good">/</span> HTTP/1.1
+GET /admin/deleteUser<span class="good">.json</span> HTTP/1.1
+
+<span class="cmt"># Referer spoofing (nếu app dùng Referer để auth sub-pages)</span>
+GET /admin/settings HTTP/1.1
+<span class="kw">Referer:</span> https://target.com/admin</pre>
+      </div>
+
+      <div id="tab-jwt" class="payload-block">
+        <pre><span class="cmt"># 1. Decode JWT (base64 - không cần tool)</span>
+echo "eyJ..." | base64 -d
+
+<span class="cmt"># 2. Payload thường gặp</span>
+{
+  "sub": "user123",
+  "role": "<span class="bad">user</span>",      <span class="cmt">← thử sửa thành "admin"</span>
+  "iat": 1700000000,
+  "exp": 1700086400
+}
+
+<span class="cmt"># 3. JWT với alg:none attack</span>
+Header: { "alg": "<span class="bad">none</span>", "typ": "JWT" }
+<span class="cmt"># Bỏ signature, server không verify</span>
+
+<span class="cmt"># 4. Dùng Burp JWT Editor extension để test tự động</span></pre>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- PREVENTION -->
+    <section class="section" id="prevention">
+      <div class="section-header">
+        <span class="section-tag tag-fix">Prevention</span>
+        <h2>Cách fix – Cho developer và non-tech</h2>
+      </div>
+
+      <div class="mindset" style="margin-bottom:16px">
+        <div class="mindset-q">💡 Nguyên tắc cốt lõi: "Deny by default"</div>
+        <div class="mindset-a">
+          Thay vì liệt kê những gì <em>bị cấm</em>, hãy chỉ cho phép những gì <strong>được phép rõ ràng</strong>. Mọi resource mặc định là <strong>không ai được truy cập</strong>, trừ khi có rule cụ thể grant quyền.
+        </div>
+      </div>
+
+      <div class="prevent-grid">
+        <div class="prevent-card">
+          <div class="title">Server-side enforcement</div>
+          <div class="desc">Check quyền ở server — không trust input từ client (URL param, cookie, hidden field, header).</div>
+        </div>
+        <div class="prevent-card">
+          <div class="title">Ownership validation</div>
+          <div class="desc">Với mỗi resource, kiểm tra user hiện tại có phải owner không — không chỉ check authen.</div>
+        </div>
+        <div class="prevent-card">
+          <div class="title">RBAC (Role-Based Access Control)</div>
+          <div class="desc">Định nghĩa rõ role và permission. Implement tập trung một lần, reuse toàn app.</div>
+        </div>
+        <div class="prevent-card">
+          <div class="title">Rate limiting API</div>
+          <div class="desc">Giới hạn số request để ngăn automated enumeration (brute-force ID, force-browsing).</div>
+        </div>
+        <div class="prevent-card">
+          <div class="title">Short-lived JWT</div>
+          <div class="desc">JWT expired nhanh (15–60 phút). Dùng refresh token. Invalidate token sau logout.</div>
+        </div>
+        <div class="prevent-card">
+          <div class="title">Log & Alert</div>
+          <div class="desc">Log access control failures. Alert admin khi có repeated failures — dấu hiệu của enumeration attack.</div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:10px;font-weight:600">❌ Bad practice vs ✅ Good practice</p>
+        <div class="vs-row">
+          <div class="vs-bad">
+            <div class="vs-label">❌ Frontend-only check</div>
+if (user.role === 'admin') {
+  showAdminButton();
+}
+// API không check gì cả</div>
+          <div class="vs-good">
+            <div class="vs-label">✅ Server-side check</div>
+// Mỗi API endpoint
+if (!isAuthorized(user, 'admin')) {
+  return 403 Forbidden;
+}</div>
+        </div>
+        <div class="vs-row">
+          <div class="vs-bad">
+            <div class="vs-label">❌ Không check ownership</div>
+GET /orders/{id}
+// Trả về luôn, không check
+// order có thuộc user không</div>
+          <div class="vs-good">
+            <div class="vs-label">✅ Verify ownership</div>
+order = db.getOrder(id)
+if (order.userId != currentUser.id):
+  return 403 Forbidden</div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- LABS -->
+    <section class="section" id="labs">
+      <div class="section-header">
+        <span class="section-tag tag-lab">Labs</span>
+        <h2>PortSwigger Labs – Nên làm theo thứ tự</h2>
+      </div>
+
+      <a href="https://portswigger.net/web-security/access-control/lab-unprotected-admin-functionality" class="lab-card" target="_blank">
+        <div class="lab-icon">🔓</div>
+        <div class="lab-info">
+          <div class="lab-name">Unprotected admin functionality</div>
+          <div class="lab-meta">Force browsing · robots.txt leak</div>
+        </div>
+        <span class="lab-diff diff-prac">Apprentice</span>
+      </a>
+
+      <a href="https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter" class="lab-card" target="_blank">
+        <div class="lab-icon">👤</div>
+        <div class="lab-info">
+          <div class="lab-name">User ID controlled by request parameter</div>
+          <div class="lab-meta">IDOR · horizontal escalation · leak API key</div>
+        </div>
+        <span class="lab-diff diff-prac">Apprentice</span>
+      </a>
+
+      <a href="https://portswigger.net/web-security/access-control/lab-url-based-access-control-can-be-circumvented" class="lab-card" target="_blank">
+        <div class="lab-icon">🔀</div>
+        <div class="lab-info">
+          <div class="lab-name">URL-based access control circumvented</div>
+          <div class="lab-meta">X-Original-URL header bypass · platform misconfiguration</div>
+        </div>
+        <span class="lab-diff diff-app">Practitioner</span>
+      </a>
+
+      <a href="https://portswigger.net/web-security/access-control/lab-multi-step-process-with-no-access-control-on-one-step" class="lab-card" target="_blank">
+        <div class="lab-icon">📋</div>
+        <div class="lab-info">
+          <div class="lab-name">Multi-step process with no access control on one step</div>
+          <div class="lab-meta">Skip step 1 & 2, attack step 3 directly</div>
+        </div>
+        <span class="lab-diff diff-app">Practitioner</span>
+      </a>
+
+      <a href="https://portswigger.net/web-security/access-control/lab-referer-based-access-control" class="lab-card" target="_blank">
+        <div class="lab-icon">🔗</div>
+        <div class="lab-info">
+          <div class="lab-name">Referer-based access control</div>
+          <div class="lab-meta">Forge Referer header để bypass sub-page auth</div>
+        </div>
+        <span class="lab-diff diff-app">Practitioner</span>
+      </a>
+    </section>
+
+    <hr class="divider">
+
+    <!-- TOOLS -->
+    <section class="section" id="tools">
+      <div class="section-header">
+        <span class="section-tag tag-tool">Tools</span>
+        <h2>Tools hay dùng</h2>
+      </div>
+
+      <div class="card">
+        <div class="tool-row">
+          <div class="tool-icon">B</div>
+          <div>
+            <div class="tool-name">Burp Suite – Repeater</div>
+            <div class="tool-use">Test thủ công từng request, thay đổi parameter, observe response diff. Phải có trong workflow.</div>
+          </div>
+        </div>
+        <div class="tool-row">
+          <div class="tool-icon">A</div>
+          <div>
+            <div class="tool-name">Autorize (Burp extension)</div>
+            <div class="tool-use">Tự động replay request với session của user B khi bạn browse với user A. Detect BAC cực nhanh.</div>
+          </div>
+        </div>
+        <div class="tool-row">
+          <div class="tool-icon">I</div>
+          <div>
+            <div class="tool-name">Burp Intruder</div>
+            <div class="tool-use">Enumerate ID (1 → 9999) để tìm IDOR. Set payload list = number range.</div>
+          </div>
+        </div>
+        <div class="tool-row">
+          <div class="tool-icon">J</div>
+          <div>
+            <div class="tool-name">JWT Editor (Burp extension)</div>
+            <div class="tool-use">Decode, sửa, resign JWT. Test alg:none, key confusion attacks.</div>
+          </div>
+        </div>
+        <div class="tool-row">
+          <div class="tool-icon" style="font-size:12px">ff</div>
+          <div>
+            <div class="tool-name">ffuf</div>
+            <div class="tool-use">Bruteforce hidden endpoint, admin path. Dùng wordlist SecLists/Discovery/Web-Content.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- REAL WORLD -->
+    <section class="section" id="realworld">
+      <div class="section-header">
+        <span class="section-tag tag-concept">Real-world</span>
+        <h2>Case thực tế điển hình</h2>
+      </div>
+
+      <div class="real-case">
+        <div class="case-title">Case 1 – IDOR lộ đơn hàng khách hàng khác (E-commerce)</div>
+        <div class="case-body">
+          App thương mại điện tử để <code>order_id</code> là số tăng dần trong URL: <code>/orders/10234</code>. Attacker thay đổi ID tuần tự → xem được tên, địa chỉ, sản phẩm đơn hàng của toàn bộ khách hàng. Root cause: API <code>GET /orders/{id}</code> không kiểm tra order đó có thuộc về user đang login không.
+        </div>
+      </div>
+
+      <div class="real-case">
+        <div class="case-title">Case 2 – Admin panel không có auth check (Real bug)</div>
+        <div class="case-body">
+          Ứng dụng nội bộ có <code>/admin/console</code> được access control bằng JavaScript (ẩn button). Attacker dùng <code>curl https://target.com/admin/console</code> → response đầy đủ HTML admin panel. Không cần bypass gì thêm vì server không check session.
+        </div>
+      </div>
+
+      <div class="real-case">
+        <div class="case-title">Case 3 – Horizontal → Vertical escalation qua password reset</div>
+        <div class="case-body">
+          Trang <code>/myaccount?id=456</code> của admin hiển thị form đổi password. Attacker (đang login với user thường) đổi <code>id</code> sang ID của admin → thấy form → submit password mới → login admin account → vertical privilege escalation thành công.
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- MINDSET -->
+    <section class="section" id="mindset">
+      <div class="section-header">
+        <span class="section-tag tag-concept">Mindset</span>
+        <h2>Attacker mindset – Cách suy nghĩ khi test</h2>
+      </div>
+
+      <div class="mindset">
+        <div class="mindset-q">"Mỗi khi thấy ID trong request, câu hỏi đầu tiên: server có verify object này thuộc về mình không?"</div>
+        <div class="mindset-a">Không phải đổi ID là luôn ra IDOR — nhưng <strong>luôn phải thử</strong>. Ngay cả GUID cũng có thể bị leak từ endpoint khác.</div>
+      </div>
+
+      <div class="mindset">
+        <div class="mindset-q">"Mỗi khi thấy role/admin trong request, câu hỏi: ai control giá trị này?"</div>
+        <div class="mindset-a">Nếu giá trị đến từ client (cookie, URL param, JWT payload không verify), đó là attack surface. <strong>Server phải tự lấy role từ DB</strong>, không được tin client-sent role.</div>
+      </div>
+
+      <div class="mindset">
+        <div class="mindset-q">"Frontend không hiển thị button/link không có nghĩa là endpoint được bảo vệ."</div>
+        <div class="mindset-a">Security by obscurity ≠ access control. Luôn test API endpoint trực tiếp, bỏ qua UI. <strong>curl và Burp không bị ảnh hưởng bởi JavaScript UI logic.</strong></div>
+      </div>
+
+      <div style="margin-top:20px;padding:20px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border)">
+        <p style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:10px">📌 Checklist nhanh khi pentest</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Đổi numeric ID trong URL/body</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Test endpoint với user khác (Autorize)</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Tìm role/admin trong URL, cookie, JWT</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Force browse /admin, /dashboard/admin</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Check robots.txt, sitemap, JS source</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Test X-Original-URL bypass</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Đổi HTTP method (POST → GET)</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Test unauthenticated (xóa token)</label>
+        </div>
+      </div>
+    </section>
+
+    <div style="padding:24px 0;text-align:center;font-size:12px;color:var(--muted);">
+      OWASP Notes · A01 Broken Access Control · Nguồn: OWASP Top 10:2025 + PortSwigger Web Security Academy
+    </div>
+
+  </main>
+</div>
+
+<script>
+  function toggleType(el) {
+    el.classList.toggle('open');
+  }
+
+  function showTab(name) {
+    document.querySelectorAll('.payload-block').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  // Smooth nav highlight on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navItems = document.querySelectorAll('.nav-item');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navItems.forEach(n => n.classList.remove('active'));
+        const active = document.querySelector(`.nav-item[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3, rootMargin: '-20% 0px -60% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
