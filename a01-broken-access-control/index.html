@@ -27,10 +27,9 @@
     --mono: 'IBM Plex Mono', monospace;
     --radius: 10px;
     --radius-lg: 16px;
+    --sidebar-w: 240px;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     background: var(--bg);
     color: var(--text);
@@ -43,9 +42,9 @@
   /* ── Layout ── */
   .shell { display: flex; min-height: 100vh; }
 
-  /* sidebar */
+  /* ── Sidebar ── */
   .sidebar {
-    width: 240px;
+    width: var(--sidebar-w);
     flex-shrink: 0;
     background: var(--bg2);
     border-right: 1px solid var(--border);
@@ -54,6 +53,8 @@
     top: 0;
     height: 100vh;
     overflow-y: auto;
+    transition: transform 0.25s ease;
+    z-index: 100;
   }
   .sidebar-logo {
     font-size: 11px;
@@ -80,12 +81,7 @@
   }
   .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); }
   .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(79,142,247,0.08); }
-  .nav-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-    flex-shrink: 0;
-  }
+  .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
   .nav-section {
     font-size: 10px;
     font-weight: 600;
@@ -96,9 +92,41 @@
     opacity: 0.6;
   }
 
-  /* main */
+  /* ── Hamburger ── */
+  .hamburger {
+    display: none;
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 200;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .hamburger span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 90;
+  }
+
+  /* ── Main ── */
   .main {
     flex: 1;
+    min-width: 0;
     max-width: 840px;
     padding: 48px 48px 80px;
   }
@@ -136,206 +164,79 @@
     border-radius: 999px;
     margin-bottom: 16px;
   }
-  .hero h1 {
-    font-size: 28px;
-    font-weight: 600;
-    line-height: 1.25;
-    margin-bottom: 10px;
-  }
+  .hero h1 { font-size: 28px; font-weight: 600; line-height: 1.25; margin-bottom: 10px; }
   .hero h1 span { color: var(--accent); }
-  .hero-sub {
-    color: var(--muted);
-    font-size: 14px;
-    max-width: 520px;
-  }
-  .hero-stats {
-    display: flex;
-    gap: 24px;
-    margin-top: 24px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
-  }
-  .stat { flex: 1; }
-  .stat-num {
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--accent);
-    font-family: var(--mono);
-  }
+  .hero-sub { color: var(--muted); font-size: 14px; max-width: 520px; }
+  .hero-stats { display: flex; gap: 24px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+  .stat { flex: 1; min-width: 100px; }
+  .stat-num { font-size: 22px; font-weight: 600; color: var(--accent); font-family: var(--mono); }
   .stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
   /* ── Section ── */
-  .section {
-    margin-bottom: 40px;
-    scroll-margin-top: 24px;
-  }
-  .section-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 18px;
-  }
+  .section { margin-bottom: 40px; scroll-margin-top: 24px; }
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
   .section-tag {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 3px 10px;
-    border-radius: 999px;
-    border: 1px solid;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 999px; border: 1px solid; white-space: nowrap;
   }
-  .tag-concept { color: var(--teal); border-color: rgba(20,184,166,0.35); background: rgba(20,184,166,0.08); }
-  .tag-attack  { color: var(--red);  border-color: rgba(239,68,68,0.35);   background: rgba(239,68,68,0.08); }
-  .tag-detect  { color: var(--amber); border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.08); }
-  .tag-fix     { color: var(--green); border-color: rgba(34,197,94,0.35);  background: rgba(34,197,94,0.08); }
-  .tag-lab     { color: var(--pink);  border-color: rgba(236,72,153,0.35); background: rgba(236,72,153,0.08); }
-  .tag-tool    { color: var(--accent2); border-color: rgba(124,58,237,0.35); background: rgba(124,58,237,0.08); }
-
-  .section h2 {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text);
-  }
+  .tag-concept { color: var(--teal);   border-color: rgba(20,184,166,0.35); background: rgba(20,184,166,0.08); }
+  .tag-attack  { color: var(--red);    border-color: rgba(239,68,68,0.35);  background: rgba(239,68,68,0.08); }
+  .tag-detect  { color: var(--amber);  border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.08); }
+  .tag-fix     { color: var(--green);  border-color: rgba(34,197,94,0.35);  background: rgba(34,197,94,0.08); }
+  .tag-lab     { color: var(--pink);   border-color: rgba(236,72,153,0.35); background: rgba(236,72,153,0.08); }
+  .tag-tool    { color: var(--accent2);border-color: rgba(124,58,237,0.35); background: rgba(124,58,237,0.08); }
+  .section h2  { font-size: 18px; font-weight: 600; color: var(--text); }
 
   /* ── Cards ── */
-  .card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 12px;
-  }
-  .card-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .card p, .card li {
-    font-size: 14px;
-    color: var(--muted);
-    line-height: 1.65;
-  }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 12px; }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .card p, .card li { font-size: 14px; color: var(--muted); line-height: 1.65; }
   .card ul { padding-left: 18px; }
   .card li { margin-bottom: 4px; }
 
   /* ── Type grid ── */
-  .type-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
+  .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
   .type-card {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-    position: relative;
+    background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 18px; cursor: pointer; transition: border-color 0.15s, background 0.15s;
   }
   .type-card:hover { border-color: var(--border2); background: var(--bg2); }
   .type-card.open { border-color: rgba(79,142,247,0.4); }
-  .type-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .type-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .type-badge {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    padding: 2px 8px;
-    border-radius: 999px;
-  }
+  .type-card-header { display: flex; align-items: center; justify-content: space-between; }
+  .type-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .type-badge { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 999px; margin-top: 4px; display: inline-block; }
   .badge-h { background: rgba(239,68,68,0.15); color: var(--red); }
   .badge-m { background: rgba(245,158,11,0.15); color: var(--amber); }
-  .type-desc {
-    font-size: 13px;
-    color: var(--muted);
-    margin-top: 6px;
-    line-height: 1.55;
-  }
-  .type-detail {
-    display: none;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-  }
+  .type-desc { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.55; }
+  .type-detail { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
   .type-card.open .type-detail { display: block; }
-  .chevron {
-    font-size: 13px;
-    color: var(--muted);
-    transition: transform 0.2s;
-  }
+  .chevron { font-size: 13px; color: var(--muted); transition: transform 0.2s; flex-shrink: 0; }
   .type-card.open .chevron { transform: rotate(90deg); }
 
-  /* ── Code blocks ── */
+  /* ── Code ── */
   pre {
-    background: #090b10;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    font-family: var(--mono);
-    font-size: 13px;
-    line-height: 1.6;
-    overflow-x: auto;
-    margin-bottom: 10px;
-    color: #c9d1e0;
+    background: #090b10; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 18px; font-family: var(--mono); font-size: 13px; line-height: 1.6;
+    overflow-x: auto; margin-bottom: 10px; color: #c9d1e0; white-space: pre;
   }
   .kw { color: #7dd3fc; }
   .str { color: #86efac; }
   .cmt { color: #4b5563; font-style: italic; }
-  .url { color: var(--accent); }
   .bad { color: var(--red); }
   .good { color: var(--green); }
-  .hl { background: rgba(79,142,247,0.12); border-left: 3px solid var(--accent); padding-left: 12px; display: block; margin: -1px -18px; padding-right: 18px; }
 
-  /* ── Flow steps ── */
-  .flow {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    margin: 4px 0 12px;
-  }
-  .flow-step {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    position: relative;
-  }
+  /* ── Flow ── */
+  .flow { display: flex; flex-direction: column; gap: 0; margin: 4px 0 12px; }
+  .flow-step { display: flex; align-items: flex-start; gap: 14px; position: relative; }
   .flow-step:not(:last-child)::before {
-    content: '';
-    position: absolute;
-    left: 15px;
-    top: 32px;
-    bottom: -8px;
-    width: 1px;
-    background: var(--border2);
+    content: ''; position: absolute; left: 15px; top: 32px; bottom: -8px;
+    width: 1px; background: var(--border2);
   }
   .step-num {
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    background: var(--bg3);
-    border: 1px solid var(--border2);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px;
-    font-weight: 600;
-    font-family: var(--mono);
-    color: var(--accent);
-    flex-shrink: 0;
-    position: relative;
-    z-index: 1;
-    margin-bottom: 16px;
+    width: 30px; height: 30px; border-radius: 50%; background: var(--bg3);
+    border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; font-family: var(--mono); color: var(--accent);
+    flex-shrink: 0; position: relative; z-index: 1; margin-bottom: 16px;
   }
   .step-content { padding-top: 5px; }
   .step-title { font-size: 14px; font-weight: 600; color: var(--text); }
@@ -344,154 +245,90 @@
   /* ── Indicators ── */
   .indicator-list { list-style: none; }
   .indicator-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 14px;
-    color: var(--muted);
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    font-size: 14px; color: var(--muted);
   }
   .indicator-list li:last-child { border-bottom: none; }
   .ind-icon {
-    width: 22px; height: 22px;
-    border-radius: 4px;
+    width: 22px; height: 22px; border-radius: 4px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 11px;
-    flex-shrink: 0;
-    margin-top: 1px;
+    font-size: 11px; flex-shrink: 0; margin-top: 1px;
   }
-  .ind-red    { background: rgba(239,68,68,0.15);   color: var(--red); }
-  .ind-amber  { background: rgba(245,158,11,0.15);  color: var(--amber); }
-  .ind-blue   { background: rgba(79,142,247,0.15);  color: var(--accent); }
+  .ind-red   { background: rgba(239,68,68,0.15);  color: var(--red); }
+  .ind-amber { background: rgba(245,158,11,0.15); color: var(--amber); }
+  .ind-blue  { background: rgba(79,142,247,0.15); color: var(--accent); }
 
-  /* ── Prevention ── */
-  .prevent-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
+  /* ── Prevention grid ── */
+  .prevent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .prevent-card {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    border-left: 3px solid var(--green);
+    background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 16px; border-left: 3px solid var(--green);
   }
   .prevent-card .title { font-size: 13px; font-weight: 600; color: var(--green); margin-bottom: 4px; }
   .prevent-card .desc  { font-size: 13px; color: var(--muted); line-height: 1.5; }
 
   /* ── VS comparison ── */
-  .vs-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
+  .vs-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
   .vs-bad, .vs-good {
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    font-size: 13px;
-    font-family: var(--mono);
-    line-height: 1.55;
+    border-radius: var(--radius); padding: 14px 16px;
+    font-size: 13px; font-family: var(--mono); line-height: 1.55;
+    white-space: pre-wrap; word-break: break-word;
   }
-  .vs-bad  { background: rgba(239,68,68,0.08);  border: 1px solid rgba(239,68,68,0.25);  color: #fca5a5; }
-  .vs-good { background: rgba(34,197,94,0.08);  border: 1px solid rgba(34,197,94,0.25);  color: #86efac; }
+  .vs-bad  { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25);  color: #fca5a5; }
+  .vs-good { background: rgba(34,197,94,0.08);  border: 1px solid rgba(34,197,94,0.25); color: #86efac; }
   .vs-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; opacity: 0.7; font-family: var(--font); }
 
   /* ── Lab cards ── */
   .lab-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 18px;
-    margin-bottom: 10px;
-    text-decoration: none;
-    color: inherit;
-    transition: border-color 0.15s;
+    display: flex; align-items: center; gap: 14px; background: var(--bg2);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 18px; margin-bottom: 10px;
+    text-decoration: none; color: inherit; transition: border-color 0.15s;
   }
   .lab-card:hover { border-color: var(--border2); }
   .lab-icon {
-    width: 36px; height: 36px;
-    border-radius: 8px;
-    background: rgba(236,72,153,0.1);
-    border: 1px solid rgba(236,72,153,0.25);
+    width: 36px; height: 36px; border-radius: 8px;
+    background: rgba(236,72,153,0.1); border: 1px solid rgba(236,72,153,0.25);
     display: flex; align-items: center; justify-content: center;
-    font-size: 15px;
-    flex-shrink: 0;
+    font-size: 15px; flex-shrink: 0;
   }
-  .lab-info { flex: 1; }
+  .lab-info { flex: 1; min-width: 0; }
   .lab-name { font-size: 14px; font-weight: 600; color: var(--text); }
   .lab-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .lab-diff {
-    font-size: 11px;
-    padding: 2px 10px;
-    border-radius: 999px;
-    font-weight: 600;
-  }
-  .diff-app  { background: rgba(239,68,68,0.12);   color: var(--red); }
-  .diff-prac { background: rgba(245,158,11,0.12);  color: var(--amber); }
+  .lab-diff { font-size: 11px; padding: 2px 10px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
+  .diff-app  { background: rgba(239,68,68,0.12);  color: var(--red); }
+  .diff-prac { background: rgba(245,158,11,0.12); color: var(--amber); }
 
   /* ── Tools ── */
-  .tool-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-  }
+  .tool-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
   .tool-row:last-child { border-bottom: none; }
   .tool-icon {
-    width: 34px; height: 34px;
-    border-radius: 8px;
-    background: rgba(124,58,237,0.12);
-    border: 1px solid rgba(124,58,237,0.25);
+    width: 34px; height: 34px; border-radius: 8px;
+    background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.25);
     display: flex; align-items: center; justify-content: center;
-    font-size: 14px;
-    color: var(--accent2);
-    flex-shrink: 0;
-    font-family: var(--mono);
-    font-weight: 600;
+    font-size: 14px; color: var(--accent2); flex-shrink: 0;
+    font-family: var(--mono); font-weight: 600;
   }
   .tool-name { font-size: 14px; font-weight: 600; color: var(--text); }
   .tool-use  { font-size: 13px; color: var(--muted); }
 
-  /* ── Mindset box ── */
+  /* ── Mindset ── */
   .mindset {
     background: linear-gradient(135deg, rgba(79,142,247,0.06), rgba(124,58,237,0.06));
     border: 1px solid rgba(79,142,247,0.2);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    margin-bottom: 12px;
+    border-radius: var(--radius-lg); padding: 24px; margin-bottom: 12px;
   }
-  .mindset-q {
-    font-size: 17px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 8px;
-  }
-  .mindset-a {
-    font-size: 14px;
-    color: var(--muted);
-    line-height: 1.65;
-  }
+  .mindset-q { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+  .mindset-a { font-size: 14px; color: var(--muted); line-height: 1.65; }
   .mindset-a strong { color: var(--accent); font-weight: 500; }
 
   /* ── Payload tabs ── */
   .payload-tabs { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
   .ptab {
-    font-size: 12px;
-    font-weight: 600;
-    padding: 5px 14px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: var(--bg3);
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.15s;
+    font-size: 12px; font-weight: 600; padding: 5px 14px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--bg3); color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
   }
   .ptab.active { background: rgba(79,142,247,0.12); border-color: rgba(79,142,247,0.4); color: var(--accent); }
   .payload-block { display: none; }
@@ -502,55 +339,107 @@
 
   /* ── Real-world ── */
   .real-case {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 12px;
-    border-left: 3px solid var(--accent2);
+    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; margin-bottom: 12px; border-left: 3px solid var(--accent2);
   }
   .case-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
   .case-body  { font-size: 13px; color: var(--muted); line-height: 1.6; }
   .case-body code {
-    font-family: var(--mono);
-    background: var(--bg3);
-    padding: 1px 6px;
-    border-radius: 4px;
-    color: var(--accent);
-    font-size: 12px;
+    font-family: var(--mono); background: var(--bg3); padding: 1px 6px;
+    border-radius: 4px; color: var(--accent); font-size: 12px;
+  }
+
+  /* ── Checklist ── */
+  .checklist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .checklist-grid label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted); cursor: pointer;
   }
 
   /* scrollbar */
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 999px; }
+
+  /* ══════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════ */
+  @media (max-width: 768px) {
+    /* show hamburger */
+    .hamburger { display: flex; }
+
+    /* sidebar becomes drawer */
+    .sidebar {
+      position: fixed;
+      left: 0; top: 0;
+      height: 100vh;
+      transform: translateX(-100%);
+    }
+    .sidebar.open { transform: translateX(0); }
+    .overlay.open { display: block; }
+
+    /* main takes full width */
+    .main { padding: 64px 20px 60px; max-width: 100%; }
+
+    /* hero */
+    .hero { padding: 20px; }
+    .hero h1 { font-size: 22px; }
+
+    /* collapse 2-col grids to 1-col */
+    .type-grid     { grid-template-columns: 1fr; }
+    .prevent-grid  { grid-template-columns: 1fr; }
+    .vs-row        { grid-template-columns: 1fr; }
+    .checklist-grid { grid-template-columns: 1fr; }
+
+    /* code wrap on small screens */
+    pre { font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+
+    /* lab card: hide badge on tiny */
+    .lab-diff { display: none; }
+  }
+
+  @media (max-width: 480px) {
+    .hero-stats { flex-direction: column; gap: 12px; }
+    .hero h1 { font-size: 20px; }
+    .mindset-q { font-size: 14px; }
+    .section h2 { font-size: 16px; }
+    .main { padding: 60px 16px 48px; }
+  }
 </style>
 </head>
 <body>
 
+<!-- Hamburger button (mobile only) -->
+<button class="hamburger" id="burger" aria-label="Toggle menu">
+  <span></span><span></span><span></span>
+</button>
+
+<!-- Overlay for mobile drawer -->
+<div class="overlay" id="overlay"></div>
+
 <div class="shell">
 
-  <!-- Sidebar navigation -->
-  <nav class="sidebar">
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
     <div class="sidebar-logo">OWASP Notes / <span>A01</span></div>
 
     <div class="nav-section">Overview</div>
-    <a href="#concept"    class="nav-item active"><span class="nav-dot"></span> Concept</a>
-    <a href="#types"      class="nav-item"><span class="nav-dot"></span> Attack types</a>
+    <a href="#concept"    class="nav-item active" onclick="closeSidebar()"><span class="nav-dot"></span> Concept</a>
+    <a href="#types"      class="nav-item"        onclick="closeSidebar()"><span class="nav-dot"></span> Attack types</a>
 
     <div class="nav-section">Testing</div>
-    <a href="#indicators" class="nav-item"><span class="nav-dot"></span> Indicators</a>
-    <a href="#flow"       class="nav-item"><span class="nav-dot"></span> Attack flow</a>
-    <a href="#payloads"   class="nav-item"><span class="nav-dot"></span> Payloads</a>
+    <a href="#indicators" class="nav-item" onclick="closeSidebar()"><span class="nav-dot"></span> Indicators</a>
+    <a href="#flow"       class="nav-item" onclick="closeSidebar()"><span class="nav-dot"></span> Attack flow</a>
+    <a href="#payloads"   class="nav-item" onclick="closeSidebar()"><span class="nav-dot"></span> Payloads</a>
 
-    <div class="nav-section">Fix & Labs</div>
-    <a href="#prevention" class="nav-item"><span class="nav-dot"></span> Prevention</a>
-    <a href="#labs"       class="nav-item"><span class="nav-dot"></span> Labs</a>
-    <a href="#tools"      class="nav-item"><span class="nav-dot"></span> Tools</a>
+    <div class="nav-section">Fix &amp; Labs</div>
+    <a href="#prevention" class="nav-item" onclick="closeSidebar()"><span class="nav-dot"></span> Prevention</a>
+    <a href="#labs"       class="nav-item" onclick="closeSidebar()"><span class="nav-dot"></span> Labs</a>
+    <a href="#tools"      class="nav-item" onclick="closeSidebar()"><span class="nav-dot"></span> Tools</a>
 
     <div class="nav-section">Context</div>
-    <a href="#realworld"  class="nav-item"><span class="nav-dot"></span> Real-world cases</a>
-    <a href="#mindset"    class="nav-item"><span class="nav-dot"></span> Attacker mindset</a>
+    <a href="#realworld"  class="nav-item" onclick="closeSidebar()"><span class="nav-dot"></span> Real-world cases</a>
+    <a href="#mindset"    class="nav-item" onclick="closeSidebar()"><span class="nav-dot"></span> Attacker mindset</a>
   </nav>
 
   <!-- Main content -->
@@ -564,7 +453,7 @@
       <div class="hero-stats">
         <div class="stat">
           <div class="stat-num">100%</div>
-          <div class="stat-label">app có ít nhất 1 BAC issue (theo OWASP 2025)</div>
+          <div class="stat-label">app có ít nhất 1 BAC issue (OWASP 2025)</div>
         </div>
         <div class="stat">
           <div class="stat-num">40</div>
@@ -583,14 +472,12 @@
         <span class="section-tag tag-concept">Concept</span>
         <h2>Broken Access Control là gì?</h2>
       </div>
-
       <div class="mindset">
         <div class="mindset-q">🔑 Một câu để nhớ</div>
         <div class="mindset-a">
-          Access control gồm 3 lớp cần phân biệt rõ: <strong>Authentication</strong> (bạn là ai?), <strong>Session management</strong> (request này có phải của bạn không?), và <strong>Access control</strong> (bạn có quyền làm điều này không?). BAC xảy ra khi lớp thứ 3 bị bypass — <strong>app biết bạn là ai nhưng không kiểm tra bạn được làm gì</strong>.
+          Access control gồm 3 lớp: <strong>Authentication</strong> (bạn là ai?), <strong>Session management</strong> (request này có phải của bạn không?), và <strong>Access control</strong> (bạn có quyền làm điều này không?). BAC xảy ra khi lớp thứ 3 bị bypass — <strong>app biết bạn là ai nhưng không kiểm tra bạn được làm gì</strong>.
         </div>
       </div>
-
       <div class="card">
         <p>Access control enforcement cần xảy ra ở <strong style="color:var(--accent)">server-side</strong>. Nếu chỉ kiểm tra ở client (JavaScript, hidden field, URL param), attacker bypass dễ dàng bằng Burp Suite hoặc <code style="font-family:var(--mono);font-size:12px;color:var(--teal)">curl</code>.</p>
       </div>
@@ -606,7 +493,6 @@
       </div>
 
       <div class="type-grid">
-
         <div class="type-card" onclick="toggleType(this)">
           <div class="type-card-header">
             <div>
@@ -617,11 +503,11 @@
           </div>
           <div class="type-desc">Insecure Direct Object Reference – đổi ID để xem data của người khác.</div>
           <div class="type-detail">
-            <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">App dùng user-controlled input để truy xuất object trực tiếp mà không verify ownership.</p>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:10px">App dùng user-controlled input để truy xuất object trực tiếp mà không verify ownership.</p>
             <pre><span class="cmt"># Thử đổi id từ 123 → 124</span>
-GET /api/orders/<span class="bad">123</span>    → 200 OK (đơn của bạn)
-GET /api/orders/<span class="good">124</span>    → 200 OK (đơn của người khác!)</pre>
-            <p style="font-size:13px;color:var(--muted);">GUID không bảo vệ được nếu GUID bị leak trong response API khác (e.g. user reviews, messages).</p>
+GET /api/orders/<span class="bad">123</span>  → 200 OK (đơn của bạn)
+GET /api/orders/<span class="good">124</span>  → 200 OK (đơn người khác!)</pre>
+            <p style="font-size:13px;color:var(--muted)">GUID không bảo vệ được nếu bị leak trong response API khác.</p>
           </div>
         </div>
 
@@ -635,12 +521,13 @@ GET /api/orders/<span class="good">124</span>    → 200 OK (đơn của ngườ
           </div>
           <div class="type-desc">User thường truy cập được chức năng chỉ dành cho admin.</div>
           <div class="type-detail">
-            <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">App không bảo vệ admin endpoint, hoặc kiểm tra role ở client-side.</p>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:10px">App không bảo vệ admin endpoint, hoặc kiểm tra role ở client-side.</p>
             <pre><span class="cmt"># Force browse đến admin page</span>
-GET /admin/deleteUser  → 200 OK (không check role!)
+GET /admin/deleteUser → 200 OK!
 
 <span class="cmt"># Parameter tampering</span>
-?role=<span class="bad">admin</span>  hoặc  Cookie: role=<span class="bad">admin</span></pre>
+?role=<span class="bad">admin</span>
+Cookie: role=<span class="bad">admin</span></pre>
           </div>
         </div>
 
@@ -654,9 +541,9 @@ GET /admin/deleteUser  → 200 OK (không check role!)
           </div>
           <div class="type-desc">Truy cập resource của user cùng cấp quyền nhưng khác account.</div>
           <div class="type-detail">
-            <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">Dạng IDOR nhưng target là user cùng role. Đặc biệt nguy hiểm: nếu target là admin thì leo thang thành vertical escalation.</p>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Đặc biệt nguy hiểm: nếu target là admin thì leo thang thành vertical escalation.</p>
             <pre>GET /myaccount?id=<span class="bad">456</span>
-<span class="cmt"># Nếu id=456 là admin → lấy được admin creds</span></pre>
+<span class="cmt"># id=456 là admin → lấy được creds</span></pre>
           </div>
         </div>
 
@@ -670,15 +557,14 @@ GET /admin/deleteUser  → 200 OK (không check role!)
           </div>
           <div class="type-desc">Đoán/bruteforce URL để truy cập page không có link trên UI.</div>
           <div class="type-detail">
-            <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">App ẩn URL thay vì enforce authorization — "security by obscurity" không phải access control thật.</p>
-            <pre><span class="cmt"># Trong robots.txt hoặc JS source code</span>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:10px">"Security by obscurity" không phải access control thật.</p>
+            <pre><span class="cmt"># Tìm trong robots.txt, JS source</span>
 /admin
 /dashboard/internal
 /api/v1/admin/users
-/administrator-panel-yb556
 
 <span class="cmt"># Script leak trong HTML</span>
-<span class="kw">if</span> (isAdmin) { href = <span class="str">'/admin-panel'</span> }</pre>
+<span class="kw">if</span>(isAdmin){href=<span class="str">'/admin-panel'</span>}</pre>
           </div>
         </div>
 
@@ -692,11 +578,11 @@ GET /admin/deleteUser  → 200 OK (không check role!)
           </div>
           <div class="type-desc">Sửa token, cookie, hidden field để nâng quyền.</div>
           <div class="type-detail">
-            <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">App lưu role trong JWT/cookie mà user có thể sửa.</p>
-            <pre><span class="cmt"># JWT payload decode</span>
-{ "user": "alice", "role": "<span class="bad">user</span>" }
+            <p style="font-size:13px;color:var(--muted);margin-bottom:10px">App lưu role trong JWT/cookie mà user có thể sửa.</p>
+            <pre><span class="cmt"># JWT payload</span>
+{"user":"alice","role":"<span class="bad">user</span>"}
 <span class="cmt"># Sửa thành</span>
-{ "user": "alice", "role": "<span class="good">admin</span>" }</pre>
+{"user":"alice","role":"<span class="good">admin</span>"}</pre>
           </div>
         </div>
 
@@ -710,22 +596,20 @@ GET /admin/deleteUser  → 200 OK (không check role!)
           </div>
           <div class="type-desc">Bypass rule bằng non-standard header hoặc HTTP method.</div>
           <div class="type-detail">
-            <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">Rule block POST nhưng không block GET. Hoặc dùng header để override URL.</p>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Rule block POST nhưng không block GET. Header override URL.</p>
             <pre><span class="cmt"># Header bypass</span>
 POST / HTTP/1.1
 <span class="kw">X-Original-URL:</span> /admin/deleteUser
 
-<span class="cmt"># Method bypass (thay POST → GET)</span>
+<span class="cmt"># Method bypass</span>
 GET /admin/deleteUser?userId=5
 
-<span class="cmt"># Trailing slash bypass</span>
+<span class="cmt"># Trailing slash</span>
 GET /admin/deleteUser<span class="good">/</span></pre>
           </div>
         </div>
-
       </div>
 
-      <!-- CORS + Multi-step -->
       <div class="card" style="border-left:3px solid var(--amber)">
         <div class="card-title">⚠️ Hai dạng hay bị bỏ sót</div>
         <ul>
@@ -743,27 +627,26 @@ GET /admin/deleteUser<span class="good">/</span></pre>
         <span class="section-tag tag-detect">Detection</span>
         <h2>Dấu hiệu nhận biết</h2>
       </div>
-
-      <ul class="indicator-list card" style="padding: 8px 20px;">
+      <ul class="indicator-list card" style="padding:8px 20px">
         <li>
           <span class="ind-icon ind-red">!</span>
           <div>
             <strong style="color:var(--text);font-size:14px">URL chứa numeric ID</strong><br>
-            <span><code style="font-family:var(--mono);font-size:12px;color:var(--accent)">/users/123</code>, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">/orders/456</code>, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">/api/files/789</code> — luôn thử đổi sang ID khác</span>
+            <span><code style="font-family:var(--mono);font-size:12px;color:var(--accent)">/users/123</code>, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">/orders/456</code> — luôn thử đổi sang ID khác</span>
           </div>
         </li>
         <li>
           <span class="ind-icon ind-red">!</span>
           <div>
             <strong style="color:var(--text);font-size:14px">Parameter chứa role/admin/privilege</strong><br>
-            <span><code style="font-family:var(--mono);font-size:12px;color:var(--accent)">?admin=false</code>, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">?role=user</code> trong URL hoặc body — test thay đổi giá trị</span>
+            <span><code style="font-family:var(--mono);font-size:12px;color:var(--accent)">?admin=false</code>, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">?role=user</code> — test thay đổi giá trị</span>
           </div>
         </li>
         <li>
           <span class="ind-icon ind-amber">~</span>
           <div>
             <strong style="color:var(--text);font-size:14px">JWT/Cookie chứa role claim</strong><br>
-            <span>Decode JWT payload → tìm <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">"role"</code>, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">"isAdmin"</code>, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">"permissions"</code></span>
+            <span>Decode JWT payload → tìm <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">"role"</code>, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">"isAdmin"</code></span>
           </div>
         </li>
         <li>
@@ -776,14 +659,14 @@ GET /admin/deleteUser<span class="good">/</span></pre>
         <li>
           <span class="ind-icon ind-blue">i</span>
           <div>
-            <strong style="color:var(--text);font-size:14px">Response trả về HTTP redirect nhưng vẫn có data</strong><br>
-            <span>App trả <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">302 Found</code> nhưng body response vẫn chứa sensitive data — Burp bắt được response đầy đủ trước khi browser redirect</span>
+            <strong style="color:var(--text);font-size:14px">302 redirect nhưng body vẫn có data</strong><br>
+            <span>Burp bắt được response đầy đủ trước khi browser redirect</span>
           </div>
         </li>
         <li>
           <span class="ind-icon ind-blue">i</span>
           <div>
-            <strong style="color:var(--text);font-size:14px">API endpoint POST/PUT/DELETE không có auth check</strong><br>
+            <strong style="color:var(--text);font-size:14px">API POST/PUT/DELETE không có auth check</strong><br>
             <span>Frontend có kiểm tra nhưng API raw không — test trực tiếp bằng Burp hoặc curl</span>
           </div>
         </li>
@@ -813,7 +696,7 @@ GET /admin/deleteUser<span class="good">/</span></pre>
             <div class="step-num">2</div>
             <div class="step-content">
               <div class="step-title">Tạo 2 account (A và B)</div>
-              <div class="step-sub">Dùng account A để tạo resource, ghi lại ID. Dùng account B để request ID đó.</div>
+              <div class="step-sub">Dùng account A tạo resource, ghi lại ID. Dùng account B request ID đó.</div>
             </div>
           </div>
           <div class="flow-step">
@@ -827,7 +710,7 @@ GET /admin/deleteUser<span class="good">/</span></pre>
             <div class="step-num">4</div>
             <div class="step-content">
               <div class="step-title">Observe response</div>
-              <div class="step-sub">200 + data = IDOR confirmed. 403 = có check. 200 nhưng empty có thể vẫn là bug (enumeration).</div>
+              <div class="step-sub">200 + data = IDOR confirmed. 403 = có check. 200 empty có thể vẫn là bug (enumeration).</div>
             </div>
           </div>
           <div class="flow-step">
@@ -840,14 +723,14 @@ GET /admin/deleteUser<span class="good">/</span></pre>
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:16px">
+      <div class="card">
         <div class="card-title">🎯 Privilege Escalation Testing</div>
         <div class="flow" style="margin-top:12px">
           <div class="flow-step">
             <div class="step-num">1</div>
             <div class="step-content">
               <div class="step-title">Map chức năng admin (với account admin nếu có)</div>
-              <div class="step-sub">Dùng Burp để capture tất cả request khi dùng admin account, ghi lại endpoint</div>
+              <div class="step-sub">Dùng Burp capture tất cả request khi dùng admin account, ghi lại endpoint</div>
             </div>
           </div>
           <div class="flow-step">
@@ -876,7 +759,6 @@ GET /admin/deleteUser<span class="good">/</span></pre>
         <span class="section-tag tag-attack">Payloads</span>
         <h2>Payload &amp; Request mẫu</h2>
       </div>
-
       <div class="payload-tabs">
         <button class="ptab active" onclick="showTab('idor')">IDOR</button>
         <button class="ptab" onclick="showTab('privesc')">Privilege escalation</button>
@@ -907,14 +789,14 @@ GET /admin HTTP/1.1
 GET /admin/users HTTP/1.1
 GET /management/console HTTP/1.1
 
-<span class="cmt"># Parameter tampering trong URL</span>
+<span class="cmt"># Parameter tampering</span>
 GET /home?<span class="bad">admin=true</span> HTTP/1.1
 GET /login?<span class="bad">role=administrator</span> HTTP/1.1
 
 <span class="cmt"># Cookie manipulation</span>
 Cookie: session=abc123; <span class="bad">role=admin</span>
 
-<span class="cmt"># Hidden field (capture từ form → sửa)</span>
+<span class="cmt"># Hidden field</span>
 &lt;input type="hidden" name="role" value="<span class="bad">admin</span>"&gt;</pre>
       </div>
 
@@ -924,39 +806,38 @@ POST / HTTP/1.1
 <span class="kw">X-Original-URL:</span> /admin/deleteUser
 <span class="kw">X-Rewrite-URL:</span> /admin/deleteUser
 
-<span class="cmt"># HTTP method change (POST → GET)</span>
+<span class="cmt"># HTTP method change</span>
 GET /admin/deleteUser?userId=5 HTTP/1.1
 
 <span class="cmt"># URL case variation</span>
 GET /ADMIN/deleteUser HTTP/1.1
-GET /Admin/DeleteUser HTTP/1.1
 
-<span class="cmt"># Trailing slash bypass (Spring useSuffixPatternMatch)</span>
+<span class="cmt"># Trailing slash (Spring)</span>
 GET /admin/deleteUser<span class="good">/</span> HTTP/1.1
 GET /admin/deleteUser<span class="good">.json</span> HTTP/1.1
 
-<span class="cmt"># Referer spoofing (nếu app dùng Referer để auth sub-pages)</span>
+<span class="cmt"># Referer spoofing</span>
 GET /admin/settings HTTP/1.1
 <span class="kw">Referer:</span> https://target.com/admin</pre>
       </div>
 
       <div id="tab-jwt" class="payload-block">
-        <pre><span class="cmt"># 1. Decode JWT (base64 - không cần tool)</span>
+        <pre><span class="cmt"># 1. Decode JWT</span>
 echo "eyJ..." | base64 -d
 
 <span class="cmt"># 2. Payload thường gặp</span>
 {
   "sub": "user123",
-  "role": "<span class="bad">user</span>",      <span class="cmt">← thử sửa thành "admin"</span>
+  "role": "<span class="bad">user</span>",
   "iat": 1700000000,
   "exp": 1700086400
 }
 
-<span class="cmt"># 3. JWT với alg:none attack</span>
-Header: { "alg": "<span class="bad">none</span>", "typ": "JWT" }
-<span class="cmt"># Bỏ signature, server không verify</span>
+<span class="cmt"># 3. alg:none attack</span>
+Header: {"alg":"<span class="bad">none</span>","typ":"JWT"}
+<span class="cmt"># Bỏ signature → server không verify</span>
 
-<span class="cmt"># 4. Dùng Burp JWT Editor extension để test tự động</span></pre>
+<span class="cmt"># 4. Dùng Burp JWT Editor extension</span></pre>
       </div>
     </section>
 
@@ -976,7 +857,7 @@ Header: { "alg": "<span class="bad">none</span>", "typ": "JWT" }
         </div>
       </div>
 
-      <div class="prevent-grid">
+      <div class="prevent-grid" style="margin-bottom:16px">
         <div class="prevent-card">
           <div class="title">Server-side enforcement</div>
           <div class="desc">Check quyền ở server — không trust input từ client (URL param, cookie, hidden field, header).</div>
@@ -986,7 +867,7 @@ Header: { "alg": "<span class="bad">none</span>", "typ": "JWT" }
           <div class="desc">Với mỗi resource, kiểm tra user hiện tại có phải owner không — không chỉ check authen.</div>
         </div>
         <div class="prevent-card">
-          <div class="title">RBAC (Role-Based Access Control)</div>
+          <div class="title">RBAC</div>
           <div class="desc">Định nghĩa rõ role và permission. Implement tập trung một lần, reuse toàn app.</div>
         </div>
         <div class="prevent-card">
@@ -998,39 +879,29 @@ Header: { "alg": "<span class="bad">none</span>", "typ": "JWT" }
           <div class="desc">JWT expired nhanh (15–60 phút). Dùng refresh token. Invalidate token sau logout.</div>
         </div>
         <div class="prevent-card">
-          <div class="title">Log & Alert</div>
-          <div class="desc">Log access control failures. Alert admin khi có repeated failures — dấu hiệu của enumeration attack.</div>
+          <div class="title">Log &amp; Alert</div>
+          <div class="desc">Log access control failures. Alert admin khi repeated failures — dấu hiệu enumeration attack.</div>
         </div>
       </div>
 
-      <div style="margin-top:16px">
-        <p style="font-size:13px;color:var(--muted);margin-bottom:10px;font-weight:600">❌ Bad practice vs ✅ Good practice</p>
-        <div class="vs-row">
-          <div class="vs-bad">
-            <div class="vs-label">❌ Frontend-only check</div>
-if (user.role === 'admin') {
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px;font-weight:600">❌ Bad practice vs ✅ Good practice</p>
+      <div class="vs-row">
+        <div class="vs-bad"><div class="vs-label">❌ Frontend-only check</div>if (user.role === 'admin') {
   showAdminButton();
 }
 // API không check gì cả</div>
-          <div class="vs-good">
-            <div class="vs-label">✅ Server-side check</div>
-// Mỗi API endpoint
+        <div class="vs-good"><div class="vs-label">✅ Server-side check</div>// Mỗi API endpoint
 if (!isAuthorized(user, 'admin')) {
   return 403 Forbidden;
 }</div>
-        </div>
-        <div class="vs-row">
-          <div class="vs-bad">
-            <div class="vs-label">❌ Không check ownership</div>
-GET /orders/{id}
-// Trả về luôn, không check
-// order có thuộc user không</div>
-          <div class="vs-good">
-            <div class="vs-label">✅ Verify ownership</div>
-order = db.getOrder(id)
-if (order.userId != currentUser.id):
+      </div>
+      <div class="vs-row">
+        <div class="vs-bad"><div class="vs-label">❌ Không check ownership</div>GET /orders/{id}
+// Trả về luôn, không verify
+// order thuộc user nào</div>
+        <div class="vs-good"><div class="vs-label">✅ Verify ownership</div>order = db.getOrder(id)
+if order.userId != user.id:
   return 403 Forbidden</div>
-        </div>
       </div>
     </section>
 
@@ -1051,7 +922,6 @@ if (order.userId != currentUser.id):
         </div>
         <span class="lab-diff diff-prac">Apprentice</span>
       </a>
-
       <a href="https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter" class="lab-card" target="_blank">
         <div class="lab-icon">👤</div>
         <div class="lab-info">
@@ -1060,7 +930,6 @@ if (order.userId != currentUser.id):
         </div>
         <span class="lab-diff diff-prac">Apprentice</span>
       </a>
-
       <a href="https://portswigger.net/web-security/access-control/lab-url-based-access-control-can-be-circumvented" class="lab-card" target="_blank">
         <div class="lab-icon">🔀</div>
         <div class="lab-info">
@@ -1069,16 +938,14 @@ if (order.userId != currentUser.id):
         </div>
         <span class="lab-diff diff-app">Practitioner</span>
       </a>
-
       <a href="https://portswigger.net/web-security/access-control/lab-multi-step-process-with-no-access-control-on-one-step" class="lab-card" target="_blank">
         <div class="lab-icon">📋</div>
         <div class="lab-info">
           <div class="lab-name">Multi-step process with no access control on one step</div>
-          <div class="lab-meta">Skip step 1 & 2, attack step 3 directly</div>
+          <div class="lab-meta">Skip step 1 &amp; 2, attack step 3 directly</div>
         </div>
         <span class="lab-diff diff-app">Practitioner</span>
       </a>
-
       <a href="https://portswigger.net/web-security/access-control/lab-referer-based-access-control" class="lab-card" target="_blank">
         <div class="lab-icon">🔗</div>
         <div class="lab-info">
@@ -1097,7 +964,6 @@ if (order.userId != currentUser.id):
         <span class="section-tag tag-tool">Tools</span>
         <h2>Tools hay dùng</h2>
       </div>
-
       <div class="card">
         <div class="tool-row">
           <div class="tool-icon">B</div>
@@ -1110,7 +976,7 @@ if (order.userId != currentUser.id):
           <div class="tool-icon">A</div>
           <div>
             <div class="tool-name">Autorize (Burp extension)</div>
-            <div class="tool-use">Tự động replay request với session của user B khi bạn browse với user A. Detect BAC cực nhanh.</div>
+            <div class="tool-use">Tự động replay request với session user B khi bạn browse với user A. Detect BAC cực nhanh.</div>
           </div>
         </div>
         <div class="tool-row">
@@ -1145,26 +1011,17 @@ if (order.userId != currentUser.id):
         <span class="section-tag tag-concept">Real-world</span>
         <h2>Case thực tế điển hình</h2>
       </div>
-
       <div class="real-case">
         <div class="case-title">Case 1 – IDOR lộ đơn hàng khách hàng khác (E-commerce)</div>
-        <div class="case-body">
-          App thương mại điện tử để <code>order_id</code> là số tăng dần trong URL: <code>/orders/10234</code>. Attacker thay đổi ID tuần tự → xem được tên, địa chỉ, sản phẩm đơn hàng của toàn bộ khách hàng. Root cause: API <code>GET /orders/{id}</code> không kiểm tra order đó có thuộc về user đang login không.
-        </div>
+        <div class="case-body">App thương mại điện tử để <code>order_id</code> là số tăng dần trong URL: <code>/orders/10234</code>. Attacker thay đổi ID tuần tự → xem được tên, địa chỉ, sản phẩm của toàn bộ khách hàng. Root cause: API <code>GET /orders/{id}</code> không kiểm tra order đó có thuộc về user đang login không.</div>
       </div>
-
       <div class="real-case">
-        <div class="case-title">Case 2 – Admin panel không có auth check (Real bug)</div>
-        <div class="case-body">
-          Ứng dụng nội bộ có <code>/admin/console</code> được access control bằng JavaScript (ẩn button). Attacker dùng <code>curl https://target.com/admin/console</code> → response đầy đủ HTML admin panel. Không cần bypass gì thêm vì server không check session.
-        </div>
+        <div class="case-title">Case 2 – Admin panel không có auth check</div>
+        <div class="case-body">Ứng dụng nội bộ có <code>/admin/console</code> được "bảo vệ" bằng JavaScript (ẩn button). Attacker dùng <code>curl https://target.com/admin/console</code> → response đầy đủ HTML admin panel vì server không check session.</div>
       </div>
-
       <div class="real-case">
         <div class="case-title">Case 3 – Horizontal → Vertical escalation qua password reset</div>
-        <div class="case-body">
-          Trang <code>/myaccount?id=456</code> của admin hiển thị form đổi password. Attacker (đang login với user thường) đổi <code>id</code> sang ID của admin → thấy form → submit password mới → login admin account → vertical privilege escalation thành công.
-        </div>
+        <div class="case-body">Trang <code>/myaccount?id=456</code> của admin hiển thị form đổi password. Attacker đổi <code>id</code> sang ID admin → thấy form → submit password mới → login admin account → vertical privilege escalation thành công.</div>
       </div>
     </section>
 
@@ -1176,38 +1033,35 @@ if (order.userId != currentUser.id):
         <span class="section-tag tag-concept">Mindset</span>
         <h2>Attacker mindset – Cách suy nghĩ khi test</h2>
       </div>
-
       <div class="mindset">
         <div class="mindset-q">"Mỗi khi thấy ID trong request, câu hỏi đầu tiên: server có verify object này thuộc về mình không?"</div>
         <div class="mindset-a">Không phải đổi ID là luôn ra IDOR — nhưng <strong>luôn phải thử</strong>. Ngay cả GUID cũng có thể bị leak từ endpoint khác.</div>
       </div>
-
       <div class="mindset">
         <div class="mindset-q">"Mỗi khi thấy role/admin trong request, câu hỏi: ai control giá trị này?"</div>
         <div class="mindset-a">Nếu giá trị đến từ client (cookie, URL param, JWT payload không verify), đó là attack surface. <strong>Server phải tự lấy role từ DB</strong>, không được tin client-sent role.</div>
       </div>
-
       <div class="mindset">
         <div class="mindset-q">"Frontend không hiển thị button/link không có nghĩa là endpoint được bảo vệ."</div>
-        <div class="mindset-a">Security by obscurity ≠ access control. Luôn test API endpoint trực tiếp, bỏ qua UI. <strong>curl và Burp không bị ảnh hưởng bởi JavaScript UI logic.</strong></div>
+        <div class="mindset-a">Security by obscurity ≠ access control. Luôn test API endpoint trực tiếp. <strong>curl và Burp không bị ảnh hưởng bởi JavaScript UI logic.</strong></div>
       </div>
 
       <div style="margin-top:20px;padding:20px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border)">
-        <p style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:10px">📌 Checklist nhanh khi pentest</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Đổi numeric ID trong URL/body</label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Test endpoint với user khác (Autorize)</label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Tìm role/admin trong URL, cookie, JWT</label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Force browse /admin, /dashboard/admin</label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Check robots.txt, sitemap, JS source</label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Test X-Original-URL bypass</label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Đổi HTTP method (POST → GET)</label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Test unauthenticated (xóa token)</label>
+        <p style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px">📌 Checklist nhanh khi pentest</p>
+        <div class="checklist-grid">
+          <label><input type="checkbox" style="accent-color:var(--accent)"> Đổi numeric ID trong URL/body</label>
+          <label><input type="checkbox" style="accent-color:var(--accent)"> Test endpoint với user khác (Autorize)</label>
+          <label><input type="checkbox" style="accent-color:var(--accent)"> Tìm role/admin trong URL, cookie, JWT</label>
+          <label><input type="checkbox" style="accent-color:var(--accent)"> Force browse /admin, /dashboard/admin</label>
+          <label><input type="checkbox" style="accent-color:var(--accent)"> Check robots.txt, sitemap, JS source</label>
+          <label><input type="checkbox" style="accent-color:var(--accent)"> Test X-Original-URL bypass</label>
+          <label><input type="checkbox" style="accent-color:var(--accent)"> Đổi HTTP method (POST → GET)</label>
+          <label><input type="checkbox" style="accent-color:var(--accent)"> Test unauthenticated (xóa token)</label>
         </div>
       </div>
     </section>
 
-    <div style="padding:24px 0;text-align:center;font-size:12px;color:var(--muted);">
+    <div style="padding:24px 0;text-align:center;font-size:12px;color:var(--muted)">
       OWASP Notes · A01 Broken Access Control · Nguồn: OWASP Top 10:2025 + PortSwigger Web Security Academy
     </div>
 
@@ -1215,10 +1069,23 @@ if (order.userId != currentUser.id):
 </div>
 
 <script>
-  function toggleType(el) {
-    el.classList.toggle('open');
-  }
+  // Hamburger / drawer
+  const burger  = document.getElementById('burger');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
 
+  function openSidebar()  { sidebar.classList.add('open'); overlay.classList.add('open'); }
+  function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
+
+  burger.addEventListener('click', () => {
+    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+  });
+  overlay.addEventListener('click', closeSidebar);
+
+  // Accordion
+  function toggleType(el) { el.classList.toggle('open'); }
+
+  // Payload tabs
   function showTab(name) {
     document.querySelectorAll('.payload-block').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
@@ -1226,21 +1093,19 @@ if (order.userId != currentUser.id):
     event.target.classList.add('active');
   }
 
-  // Smooth nav highlight on scroll
+  // Scroll spy
   const sections = document.querySelectorAll('section[id]');
   const navItems = document.querySelectorAll('.nav-item');
-
-  const observer = new IntersectionObserver((entries) => {
+  const io = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         navItems.forEach(n => n.classList.remove('active'));
-        const active = document.querySelector(`.nav-item[href="#${entry.target.id}"]`);
-        if (active) active.classList.add('active');
+        const a = document.querySelector(`.nav-item[href="#${entry.target.id}"]`);
+        if (a) a.classList.add('active');
       }
     });
-  }, { threshold: 0.3, rootMargin: '-20% 0px -60% 0px' });
-
-  sections.forEach(s => observer.observe(s));
+  }, { threshold: 0.25, rootMargin: '-15% 0px -60% 0px' });
+  sections.forEach(s => io.observe(s));
 </script>
 </body>
 </html>
