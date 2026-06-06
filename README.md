@@ -8,10 +8,10 @@ Each topic includes attacker mindset, detection patterns, testing methodology, p
 
 | # | Topic | Status |
 |---|-------|--------|
-| A01 | [Broken Access Control](./a01-broken-access-control/) |  |
+| A01 | [Broken Access Control](./a01-broken-access-control/) | ✅ Done |
 | A02 | [Security Misconfiguration](./a02-security-misconfiguration/) |  ✅ Done |
-| A03 | Software Supply Chain Failures | 🔄 In progress |
-| A04 | Cryptographic Failures | ⬜ Planned |
+| A03 | [Software Supply Chain Failures](./a03-software-supply-chain-failures/index.md) | ✅ Done |
+| A04 | Cryptographic Failures | 🔄 In progress |
 | A05 | Injection | ⬜ Planned |
 | A06 | Insecure Design | ⬜ Planned |
 | A07 | Authentication Failures | ⬜ Planned |
