@@ -12,8 +12,8 @@ Each topic includes attacker mindset, detection patterns, testing methodology, p
 | A02 | [Security Misconfiguration](./a02-security-misconfiguration/) |  ✅ Done |
 | A03 | [Software Supply Chain Failures](./a03-software-supply-chain-failures/index.md) | ✅ Done |
 | A04 | [Cryptographic Failures](./a04-cryptographic-failures/index.md) | ✅ Done |
-| A05 | Injection | 🔄 In progress |
-| A06 | Insecure Design | ⬜ Planned |
+| A05 | [Injection](./a05-injection/index.md) | ✅ Done |
+| A06 | Insecure Design | 🔄 In progress |
 | A07 | Authentication Failures | ⬜ Planned |
 | A08 | Software or Data Integrity Failures | ⬜ Planned |
 | A09 | Security Logging and Alerting Failures | ⬜ Planned |
