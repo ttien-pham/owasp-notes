@@ -14,7 +14,7 @@ Each topic includes attacker mindset, detection patterns, testing methodology, p
 | A04 | [Cryptographic Failures](./a04-cryptographic-failures/index.md) | ✅ Done |
 | A05 | [Injection](./a05-injection/index.md) | ✅ Done |
 | A06 | Insecure Design | 🔄 In progress |
-| A07 | Authentication Failures | ⬜ Planned |
+| A07 | [Authentication Failures](./a07-authentication-failures/index.md) | ✅ Done |
 | A08 | Software or Data Integrity Failures | ⬜ Planned |
 | A09 | Security Logging and Alerting Failures | ⬜ Planned |
 | A10 | Mishandling of Exceptional Conditions | ⬜ Planned |
