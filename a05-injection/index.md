@@ -1084,7 +1084,7 @@ tree = ET.parse(xml_input)  # Safe by default
 | Lab | Level | Kỹ thuật |
 |---|---|---|
 | [Basic server-side template injection](https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-basic) | 🔴 Practitioner | ERB: `<%= system("id") %>` |
-| [Basic server-side template injection (code context)](https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-basic-code-context) | 🔴 Practitioner | Tornado: `{%import os%}{{os.system("id")}}` |
+| [Basic server-side template injection (code context)](https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-basic-code-context) | 🔴 Practitioner | Tornado:`{% raw %}{%import os%}{{os.system("id")}}{% endraw %}` |
 | [Server-side template injection using documentation](https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-using-documentation) | 🔴 Practitioner | FreeMarker: `Execute?new()` |
 | [Server-side template injection in an unknown language with a documented exploit](https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-in-an-unknown-language-with-a-documented-exploit) | 🔴 Practitioner | Detect engine → tra payload |
 | [Server-side template injection with information disclosure via user-supplied objects](https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-with-information-disclosure-via-user-supplied-objects) | 🔴 Practitioner | Jinja2: `{{config}}` leak secret |
